@@ -1,0 +1,194 @@
+.drupal-bookmarklet {
+  position: absolute;
+  padding: 0;
+  width: 300px;
+  overflow: hidden;
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  border: none;
+  background: transparent 50% 50% repeat-x;
+  color: #222222; }
+  .drupal-bookmarklet .ui-dialog-titlebar {
+    padding: 0;
+    position: relative; }
+  .drupal-bookmarklet .ui-dialog-title {
+    display: inline;
+    float: left;
+    margin: 0; }
+  .drupal-bookmarklet .ui-dialog-titlebar-close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 0;
+    padding: 0; }
+    .drupal-bookmarklet .ui-dialog-titlebar-close span {
+      display: block;
+      margin: 1px; }
+    .drupal-bookmarklet .ui-dialog-titlebar-close:hover, .drupal-bookmarklet .ui-dialog-titlebar-close:focus {
+      padding: 0; }
+  .drupal-bookmarklet .ui-dialog-content {
+    position: relative;
+    border: 0;
+    padding: .5em 1em;
+    background: none;
+    overflow: auto;
+    zoom: 1; }
+  .drupal-bookmarklet .ui-resizable-se {
+    width: 14px;
+    height: 14px;
+    right: 3px;
+    bottom: 3px; }
+  .drupal-bookmarklet.ui-draggable .ui-dialog-titlebar {
+    cursor: move; }
+  .drupal-bookmarklet .ui-widget {
+    font-size: 1em;
+    line-height: 1.5em; }
+  .drupal-bookmarklet input, .drupal-bookmarklet select, .drupal-bookmarklet textarea, .drupal-bookmarklet button {
+    font-family: sans-serif;
+    font-size: 1em;
+    line-height: 1.5em; }
+  .drupal-bookmarklet :active {
+    outline: none; }
+  .drupal-bookmarklet a {
+    color: #222222; }
+  .drupal-bookmarklet .ui-widget-header {
+    border: none;
+    background: transparent 50% 50% repeat-x;
+    color: #222222;
+    font-weight: bold; }
+    .drupal-bookmarklet .ui-widget-header a {
+      color: white; }
+  .drupal-bookmarklet .ui-dialog-title {
+    display: inline;
+    float: none; }
+    .drupal-bookmarklet .ui-dialog-title a {
+      font-weight: bold !important;
+      white-space: nowrap;
+      display: inline;
+      float: left;
+      text-decoration: none;
+      padding-left: 1ex;
+      padding-right: 1ex; }
+  .drupal-bookmarklet .ui-widget-content {
+    background: white; }
+  .drupal-bookmarklet .ui-state-default,
+  .drupal-bookmarklet .ui-widget-header .ui-state-default {
+    border: none;
+    background: transparent 50% 50% repeat-x;
+    font-weight: normal;
+    color: white;
+    text-shadow: #333333 1px 1px 1px; }
+    .drupal-bookmarklet .ui-state-default a,
+    .drupal-bookmarklet .ui-widget-header .ui-state-default a {
+      color: white;
+      text-decoration: none; }
+      .drupal-bookmarklet .ui-state-default a:link, .drupal-bookmarklet .ui-state-default a:visited,
+      .drupal-bookmarklet .ui-widget-header .ui-state-default a:link,
+      .drupal-bookmarklet .ui-widget-header .ui-state-default a:visited {
+        color: white;
+        text-decoration: none; }
+  .drupal-bookmarklet .ui-state-hover,
+  .drupal-bookmarklet .ui-widget-header .ui-state-hover,
+  .drupal-bookmarklet .ui-state-focus,
+  .drupal-bookmarklet .ui-widget-header .ui-state-focus {
+    border: none;
+    background: transparent 50% 50% repeat-x;
+    font-weight: normal;
+    color: #eee;
+    text-shadow: black 1px 1px 0; }
+    .drupal-bookmarklet .ui-state-hover a,
+    .drupal-bookmarklet .ui-widget-header .ui-state-hover a,
+    .drupal-bookmarklet .ui-state-focus a,
+    .drupal-bookmarklet .ui-widget-header .ui-state-focus a {
+      color: #eee;
+      text-decoration: none; }
+      .drupal-bookmarklet .ui-state-hover a:hover,
+      .drupal-bookmarklet .ui-widget-header .ui-state-hover a:hover,
+      .drupal-bookmarklet .ui-state-focus a:hover,
+      .drupal-bookmarklet .ui-widget-header .ui-state-focus a:hover {
+        color: #eee;
+        text-decoration: none; }
+  .drupal-bookmarklet .ui-state-active,
+  .drupal-bookmarklet .ui-widget-header .ui-state-active {
+    border: none;
+    background: white 50% 50% repeat-x;
+    font-weight: normal;
+    color: #212121;
+    text-shadow: none; }
+    .drupal-bookmarklet .ui-state-active a,
+    .drupal-bookmarklet .ui-widget-header .ui-state-active a {
+      color: #212121;
+      text-decoration: none; }
+      .drupal-bookmarklet .ui-state-active a:link, .drupal-bookmarklet .ui-state-active a:visited,
+      .drupal-bookmarklet .ui-widget-header .ui-state-active a:link,
+      .drupal-bookmarklet .ui-widget-header .ui-state-active a:visited {
+        color: #212121;
+        text-decoration: none; }
+  .drupal-bookmarklet .ui-icon {
+    display: block;
+    text-indent: -99999px;
+    overflow: hidden;
+    background-repeat: no-repeat; }
+  .drupal-bookmarklet .ui-icon {
+    width: 24px;
+    height: 24px; }
+  .drupal-bookmarklet .ui-icon-closethick {
+    background-image: url(../images/close-default.png);
+    background-position: 0 0; }
+  .drupal-bookmarklet .ui-icon-gripsmall-diagonal-se {
+    background-position: -64px -224px; }
+  .drupal-bookmarklet .ui-state-hover .ui-icon-closethick {
+    background-image: url(../images/close-hover.png); }
+  .drupal-bookmarklet .ui-corner-tl, .drupal-bookmarklet .ui-corner-top, .drupal-bookmarklet .ui-corner-left, .drupal-bookmarklet .ui-corner-all {
+    -moz-border-radius-topleft: 1px;
+    -webkit-border-top-left-radius: 1px;
+    -o-border-top-left-radius: 1px;
+    -ms-border-top-left-radius: 1px;
+    -khtml-border-top-left-radius: 1px;
+    border-top-left-radius: 1px; }
+  .drupal-bookmarklet .ui-corner-tr, .drupal-bookmarklet .ui-corner-top, .drupal-bookmarklet .ui-corner-right, .drupal-bookmarklet .ui-corner-all {
+    -moz-border-radius-topright: 1px;
+    -webkit-border-top-right-radius: 1px;
+    -o-border-top-right-radius: 1px;
+    -ms-border-top-right-radius: 1px;
+    -khtml-border-top-right-radius: 1px;
+    border-top-right-radius: 1px; }
+  .drupal-bookmarklet .ui-corner-bl, .drupal-bookmarklet .ui-corner-bottom, .drupal-bookmarklet .ui-corner-left, .drupal-bookmarklet .ui-corner-all {
+    -moz-border-radius-bottomleft: 1px;
+    -webkit-border-bottom-left-radius: 1px;
+    -o-border-bottom-left-radius: 1px;
+    -ms-border-bottom-left-radius: 1px;
+    -khtml-border-bottom-left-radius: 1px;
+    border-bottom-left-radius: 1px; }
+  .drupal-bookmarklet .ui-corner-br, .drupal-bookmarklet .ui-corner-bottom, .drupal-bookmarklet .ui-corner-right, .drupal-bookmarklet .ui-corner-all {
+    -moz-border-radius-bottomright: 1px;
+    -webkit-border-bottom-right-radius: 1px;
+    -o-border-bottom-right-radius: 1px;
+    -ms-border-bottom-right-radius: 1px;
+    -khtml-border-bottom-right-radius: 1px;
+    border-bottom-right-radius: 1px; }
+  .drupal-bookmarklet .ui-helper-clearfix {
+    *zoom: 1; }
+    .drupal-bookmarklet .ui-helper-clearfix:after {
+      content: "\0020";
+      display: block;
+      height: 0;
+      clear: both;
+      overflow: hidden;
+      visibility: hidden; }
+
+.ui-widget-overlay, .bookmarklet-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000000 50% 50% repeat-x;
+  opacity: .5;
+  filter: Alpha(Opacity=50); }
+
+.bookmarklet-loading {
+  background-repeat: no-repeat;
+  z-index: 2147483647;
+  background-image: url(../images/ajax-loader.gif); }

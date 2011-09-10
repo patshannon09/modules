@@ -1,0 +1,204 @@
+//
+// jQuery UI CSS Framework @VERSION
+//
+// Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
+// Dual licensed under the MIT or GPL Version 2 licenses.
+// http://jquery.org/license
+//
+// http://docs.jquery.com/UI/Theming/API
+//
+// To view and modify this theme, visit http://jqueryui.com/themeroller/
+//
+
+@import "compass/css3/border-radius";
+@import "compass/css3/text-shadow";
+
+$jqueryui-border-radius: 1px;
+
+// Component containers
+@mixin ui-widget {
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  .ui-widget {
+    font-size: 1em;
+    line-height: 1.5em; }
+  input, select, textarea, button {
+    font-family: sans-serif;
+    font-size: 1em;
+    line-height: 1.5em; }
+  :active {
+    outline: none; } }
+
+@mixin ui-widget-content {
+  border: none;
+  background: transparent 50% 50% repeat-x;
+  color: #222222;
+  a {
+    color: #222222; } }
+
+@mixin ui-widget-header {
+  border: none;
+  background: transparent 50% 50% repeat-x;
+  color: #222222;
+  font-weight: bold;
+  a {
+    color: white; } }
+
+// Interaction states
+@mixin ui-state-default {
+  border: none;
+  background: transparent 50% 50% repeat-x;
+  font-weight: normal;
+  color: white;
+  @include text-shadow(#333);
+  a {
+    color: white;
+    text-decoration: none;
+    &:link, &:visited {
+      color: white;
+      text-decoration: none; } } }
+
+@mixin ui-state-hover {
+  border: none;
+  background: transparent 50% 50% repeat-x;
+  font-weight: normal;
+  color: #eee;
+  @include text-shadow(#000, 1px, 1px, 0);
+  a {
+    color: #eee;
+    text-decoration: none;
+    &:hover {
+      color: #eee;
+      text-decoration: none; } } }
+
+@mixin ui-state-active {
+  border: none;
+  background: white 50% 50% repeat-x;
+  font-weight: normal;
+  color: #212121;
+  @include text-shadow(none);
+  a {
+    color: #212121;
+    text-decoration: none;
+    &:link, &:visited {
+      color: #212121;
+      text-decoration: none; } } }
+
+
+// Icons
+// states and images
+@mixin ui-icon($selector: '.ui-icon') {
+
+  #{$selector} {
+  width: 24px;
+  height: 24px; } }
+
+//  .ui-widget-content #{$selector},
+//  .ui-widget-header #{$selector} {
+//    background-image: url(images/ui-icons_222222_256x240.png); }
+
+//  .ui-state-default #{$selector} {
+//    background-image: url(images/ui-icons_888888_256x240.png); }
+
+//  .ui-state-hover #{$selector},
+//  .ui-state-focus #{$selector},
+//  .ui-state-active #{$selector} {
+//    background-image: url(images/ui-icons_454545_256x240.png); }
+
+//  .ui-state-highlight #{$selector} {
+//    background-image: url(images/ui-icons_2e83ff_256x240.png); }
+
+//  .ui-state-error #{$selector},
+//  .ui-state-error-text #{$selector} {
+//    background-image: url(images/ui-icons_cd0a0a_256x240.png); } }
+
+// positioning
+@mixin ui-icons {
+  .ui-icon-closethick {
+    background-image: url(../images/close-default.png);
+    background-position: 0 0; }
+
+  .ui-icon-gripsmall-diagonal-se {
+    background-position: -64px -224px; }
+}
+@mixin ui-icons-hover {
+  .ui-state-hover {
+    .ui-icon-closethick {
+      background-image: url(../images/close-hover.png); } } }
+
+// Misc visuals
+// Corner radius
+
+@mixin ui-corners {
+  .ui-corner-tl {
+    @include ui-corner-tl; }
+  .ui-corner-tr {
+    @include ui-corner-tr; }
+  .ui-corner-bl {
+    @include ui-corner-bl; }
+  .ui-corner-br {
+    @include ui-corner-br; }
+  .ui-corner-top {
+    @extend .ui-corner-tl;
+    @extend .ui-corner-tr; }
+  .ui-corner-bottom {
+    @extend .ui-corner-bl;
+    @extend .ui-corner-br; }
+  .ui-corner-right {
+    @extend .ui-corner-tr;
+    @extend .ui-corner-br; }
+  .ui-corner-left {
+    @extend .ui-corner-tl;
+    @extend .ui-corner-bl; }
+  .ui-corner-all {
+    @extend .ui-corner-tl;
+    @extend .ui-corner-tr;
+    @extend .ui-corner-bl;
+    @extend .ui-corner-br; }
+}
+
+@mixin ui-corner-tl {
+  @include border-top-left-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-tr {
+  @include border-top-right-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-bl {
+  @include border-bottom-left-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-br {
+  @include border-bottom-right-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-top {
+  @include border-top-left-radius($jqueryui-border-radius);
+  @include border-top-right-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-bottom {
+  @include border-bottom-left-radius($jqueryui-border-radius);
+  @include border-bottom-right-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-right {
+  @include border-top-right-radius($jqueryui-border-radius);
+  @include border-bottom-right-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-left {
+  @include border-top-left-radius($jqueryui-border-radius);
+  @include border-bottom-left-radius($jqueryui-border-radius); }
+
+@mixin ui-corner-all {
+  @include border-radius($jqueryui-border-radius); }
+
+// Overlays
+@mixin ui-widget-overlay {
+  background: #000000 50% 50% repeat-x;
+  opacity: .5;
+  filter: Alpha(Opacity = 50); }
+
+@mixin ui-widget-shadow {
+  margin: -8px 0 0 -8px;
+  padding: 8px;
+  background: #aaaaaa 50% 50% repeat-x;
+  opacity: .3;
+  filter: Alpha(Opacity = 30);
+  border-radius: 8px; }

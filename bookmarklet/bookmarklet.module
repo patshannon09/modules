@@ -1,0 +1,623 @@
+<?php
+/**
+ * @file
+ * Bookmarklet enables creation of nodes in a UI Dialog on any site.
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function bookmarklet_init() {
+  if (isset($_REQUEST['bookmarklet'])) {
+    $GLOBALS['bookmarklet_page_template'] = TRUE;
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function bookmarklet_menu() {
+  $items = array();
+  $items['bookmarklet/js'] = array(
+    'title' => 'Bookmarklet',
+    'page callback' => 'bookmarklet_js',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['node/%node/bookmarklet'] = array(
+    'title callback' => 'node_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'bookmarklet_node_save_confirm',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_CALLBACK
+  );
+
+  foreach (variable_get('bookmarklet_node_types', array('story' => 'story')) as $type) {
+    if (node_get_types('types', $type)) {
+      $items['admin/content/node-type/'. str_replace('_', '-', $type) .'/bookmarklet'] = array(
+        'title' => 'Bookmarklet',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('bookmarklet_node_type_form', $type),
+        'access arguments' => array('administer content types'),
+        'file' => 'bookmarklet.admin.inc',
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 10,
+      );
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function bookmarklet_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+
+    case 'list':
+      $blocks[0]['info'] = t('Bookmarklet');
+      return $blocks;
+
+    case 'configure':
+      if ($delta == 0) {
+        $types = array_fill_keys(array_keys(node_get_types('types')), '');
+        $form['bookmarklet'] = array(
+          '#theme' => 'bookmarklet_config',
+        );
+        $form['bookmarklet']['node_types'] = array(
+          '#type' => 'checkboxes',
+          '#default_value' => variable_get('bookmarklet_node_types', array('story' => 'story')),
+          '#options' => $types,
+        );
+        $form['bookmarklet']['default_node_type'] = array(
+          '#type' => 'radios',
+          '#default_value' => variable_get('bookmarklet_default_node_type', 'story'),
+          '#options' => $types,
+        );
+        $form['constant'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Constant'),
+          '#default_value' => variable_get('bookmarklet_constant', ''),
+        );
+        $form['stylesheet'] = array(
+          '#type' => 'textfield',
+          '#title' => t('Stylesheet'),
+          '#default_value' => variable_get('bookmarklet_stylesheet', url(drupal_get_path('module', 'bookmarklet') .'/css/bookmarklet.css', array('absolute' => TRUE))),
+        );
+        return $form;
+      }
+      break;
+
+    case 'save':
+      if ($delta == 0) {
+        // Enable default node type even when it's not selected.
+        $edit['node_types'][$edit['default_node_type']] = $edit['default_node_type'];
+
+        variable_set('bookmarklet_node_types', $edit['node_types']);
+        variable_set('bookmarklet_default_node_type', $edit['default_node_type']);
+        variable_set('bookmarklet_constant', $edit['constant']);
+        variable_set('bookmarklet_stylesheet', $edit['stylesheet']);
+      }
+      break;
+
+    case 'view':
+      if ($delta == 0) {
+        $block['subject'] = t('Bookmarklet');
+        $block['content'] = theme('bookmarklet', 'Post on '. variable_get('site_name', 'Drupal'), bookmarklet_script());
+      }
+
+      return $block;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function bookmarklet_form_alter(&$form, $form_state, $form_id) {
+  if (isset($_REQUEST['bookmarklet'])) {
+
+    // When the destination is set, the user is probably not logged in yet.
+    if (isset($_REQUEST['destination'])) {
+
+      // Redirection happens in the context of the iframed Drupal page, so the
+      // origin, bookmarklet and edit variables must persist until the node
+      // form is displayed.
+      $query = array(
+        'bookmarklet' => TRUE,
+      );
+      if (isset($_REQUEST['origin'])) {
+        $query['origin'] = $_REQUEST['origin'];
+      }
+      if (isset($_REQUEST['edit'])) {
+        $query['edit'] = $_REQUEST['edit'];
+      }
+      $form['#redirect'] = array($_REQUEST['destination'], $query);
+    }
+    else {
+
+      // Store the referrer which will be used in the submit handler to direct
+      // the child JS to tell the parent document close the iframe.
+      $form['bookmarklet_referrer'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $_REQUEST['origin'],
+      );
+    }
+    // Node forms.
+    if (isset($form['type']) && isset($form['#node']) && ($form_id == $form['type']['#value'] .'_node_form')) {
+
+      if (module_exists('vertical_tabs')) {
+        vertical_tabs_remove_vertical_tabs($form);
+      }
+
+      // Body field and buttons are not marked required, so they need to be
+      // explicitly preserved.
+      $preserve = array_keys(array_filter(variable_get('bookmarklet_'. $form['type']['#value'], array('body_field' => 1, 'buttons' => 1))));
+      drupal_alter('bookmarklet_fields', $preserve);
+
+      // Recurse through all children.
+      _bookmarklet_form_alter($form, $preserve);
+
+      // Definitely shrink the body field.
+      if (!empty($form['body_field'])) {
+        $form['body_field']['body']['#rows'] = 5;
+
+        // Drupal resizable behavior fake-out. It's not helpful in a small frame.
+        $form['body_field']['body']['#attributes'] = array(
+          'class' => 'textarea-processed',
+        );
+      }
+
+      // Add submit handler.
+      $form['buttons']['submit']['#submit'][] = 'bookmarklet_form_submit';
+    }
+  }
+}
+
+/**
+ * Generic form submit handler.
+ *
+ * @see modalframe_form_submit()
+ * @ingroup forms
+ */
+function bookmarklet_form_submit($form, &$form_state) {
+  $query = array(
+    'bookmarklet' => TRUE,
+    'origin' => $form_state['values']['bookmarklet_referrer'],
+  );
+  $form_state['redirect'] = array('node/'. $form_state['nid'] .'/bookmarklet', $query);
+}
+
+/**
+ * Form alter helper function.
+ */
+function _bookmarklet_form_alter(&$elements, $preserve) {
+  foreach (element_children($elements) as $key) {
+    if (isset($elements[$key]) && $elements[$key]) {
+      if (in_array($key, $preserve)) {
+        continue;
+      }
+
+      // Only worry about form elements that have UI.
+      if (isset($elements[$key]['#type']) && in_array($elements[$key]['#type'], array('value', 'hidden', 'token'))) {
+        continue;
+      }
+
+      // Recurse through all children.
+      _bookmarklet_form_alter($elements[$key], $preserve);
+
+      // Only worry about form elements the user can access.
+      if (!isset($elements[$key]['#access']) || $elements[$key]['#access']) {
+        if (!isset($elements[$key]['#required']) || !$elements[$key]['#required']) {
+          if ($elements[$key]['#type'] == 'fieldset') {
+            unset($elements[$key]['#type']);
+          }
+          else {
+            $elements[$key]['#access'] = FALSE;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Set up a message to pass from the iframe to the parent document.
+ */
+function bookmarklet_add_event($event = NULL) {
+  if (!empty($event)) {
+    if (!isset($_SESSION['bookmarklet'])) {
+      $_SESSION['bookmarklet'] = array();
+    }
+
+    $_SESSION['bookmarklet'][] = $event;
+
+  }
+  return isset($_SESSION['bookmarklet']) ? $_SESSION['bookmarklet'] : NULL;
+}
+
+/**
+ * Get queued messages.
+ */
+function bookmarklet_get_events($clear_queue = TRUE) {
+  if ($events = bookmarklet_add_event()) {
+    if ($clear_queue) {
+      unset($_SESSION['bookmarklet']);
+    }
+    return $events;
+  }
+  return array();
+}
+
+/**
+ * Implementation of hook_footer().
+ */
+function bookmarklet_footer($main = 0) {
+  if ($_REQUEST['bookmarklet']) {
+    $path = drupal_get_path('module', 'bookmarklet');
+    drupal_add_js($path .'/jquery-postmessage/jquery.ba-postmessage.js', 'module', 'footer');
+    drupal_add_js($path .'/bookmarklet.child.js', 'module', 'footer');
+    $setting = array();
+    $setting['bookmarklet'] = array('target_url' => $_REQUEST['origin']);
+
+    // Add an event to set the bookmarklet's UI Dialog title.
+    if (drupal_get_title()) {
+      $event = array(
+        'method' => 'option',
+        'optionName' => 'title',
+        'value' => strip_tags(drupal_get_title()),
+      );
+      bookmarklet_add_event($event);
+    }
+
+    $setting['bookmarklet']['events'] = bookmarklet_get_events();
+    drupal_add_js($setting, 'setting', 'footer');
+  }
+}
+
+/**
+ * Implement hook_theme_registry_alter().
+ *
+ * @see modalframe_theme_registry_alter()
+ * @ingroup themeable
+ */
+function bookmarklet_theme_registry_alter(&$theme_registry) {
+  if (isset($theme_registry['page']) && isset($theme_registry['page']['theme paths'])) {
+    $module_path = drupal_get_path('module', 'bookmarklet');
+    array_unshift($theme_registry['page']['theme paths'], $module_path);
+    array_unshift($theme_registry['page']['preprocess functions'], 'bookmarklet_pre_preprocess_page');
+  }
+}
+
+/**
+ * Preprocess template variables for page.tpl.php - step 1.
+ *
+ * Performance enhancement: prevent template_preprocess_page() from generating
+ * sidebar blocks when a modal frame has been requested.
+ *
+ * @see modalframe_pre_preprocess_page()
+ *
+ */
+function bookmarklet_pre_preprocess_page(&$variables) {
+  if (!empty($GLOBALS['bookmarklet_page_template'])) {
+    module_invoke_all('suppress');
+    $variables['show_blocks'] = FALSE;
+  }
+}
+
+/**
+ * Preprocess template variables for page.tpl.php - step 2.
+ *
+ * @see modalframe_preprocess_page()
+ *
+ * @ingroup themeable
+ */
+function bookmarklet_preprocess_page(&$variables) {
+  if (!empty($GLOBALS['bookmarklet_page_template'])) {
+    if (!isset($variables['template_files'])) {
+      $variables['template_files'] = array();
+    }
+    array_unshift($variables['template_files'], 'bookmarklet-page');
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function bookmarklet_theme($existing, $type, $theme, $path) {
+  return array(
+    'bookmarklet' => array(
+      'arguments' => array(
+        'text' => '',
+        'script' => '',
+        'options' => array(),
+      ),
+    ),
+    'bookmarklet_config' => array(
+      'arguments' => array(
+        'form' => array(),
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme the bookmarklet link.
+ *
+ * Takes the same arguments as l() but deliberately side steps the XSS security
+ * filter because our goal is XSS.
+ */
+function theme_bookmarklet($text = '', $script = '', $options = array()) {
+  $options['absolute'] = TRUE;
+  $options['attributes'] = array(
+    'onclick' => 'alert(\'Click and drag this to your bookmark bar to install the bookmarklet.\');return false;',
+    'class' => 'bookmarklet',
+  );
+  $decoy = 'http://BOOKMARKLET';
+  $link = l($text, $decoy, $options);
+  $script = 'javascript:'. rawurlencode(trim($script));
+  return str_replace($decoy, $script, $link);
+}
+
+/**
+ * Theme the bookmarklet config form.
+ */
+function theme_bookmarklet_config($form) {
+  $rows = array();
+  foreach (node_get_types('names') as $type => $name) {
+    $row = array();
+    $row[] = array(
+      'data' => $name,
+      'header' => TRUE,
+    );
+    $row[] = array(
+      'data' => drupal_render($form['node_types'][$type]),
+      'align' => 'center',
+      'title' => t($name) .': '. t('Enabled'),
+    );
+    $row[] = array(
+      'data' => drupal_render($form['default_node_type'][$type]),
+      'align' => 'center',
+      'title' => t($name) .': '. t('Default'),
+    );
+    $rows[] = $row;
+  }
+  $header = array(
+    t('Name'),
+    t('Enabled'),
+    t('Default'),
+  );
+  $output = theme('table', $header, $rows, array(), t('Allowed and default node types in bookmarklet'));
+  $output .= drupal_render($form);
+  return $output;
+}
+
+function bookmarklet_script() {
+  if ($cache = cache_get('bookmarklet_script')) {
+    $script = $cache->data;
+  }
+  else {
+    global $base_url;
+    $path = drupal_get_path('module', 'bookmarklet');
+    $instance_name = md5($base_url);
+    $data = array(
+      'compilation_level' => 'SIMPLE_OPTIMIZATIONS',
+      'output_format' => 'text',
+      'output_info' => 'compiled_code',
+    );
+    $script = $data['js_code'] = <<<EOT
+/* global $,DrupalBookmarklet,DrupalBookmarklet$instance_name,Math,document */
+var DrupalBookmarklet$instance_name;
+(function () {
+  var host, path, b;
+  if (typeof DrupalBookmarklet$instance_name === 'object') {
+    DrupalBookmarklet$instance_name.reOpen();
+  }
+  else {
+    host = '$base_url';
+    path = '$path';
+    b = document.createElement('SCRIPT');
+    b.type = 'text/javascript';
+    b.src = host + '/' + path + '/bookmarklet.js?' + (Math.random());
+    b.onload = function () {
+      DrupalBookmarklet$instance_name = new DrupalBookmarklet(host, path);
+    };
+    document.getElementsByTagName('head')[0].appendChild(b);
+  }
+}());
+/*jslint white: true, browser: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, maxerr: 500, indent: 2 */
+EOT;
+    $headers = array(
+      'Content-type' => 'application/x-www-form-urlencoded',
+    );
+    $request = drupal_http_request('http://closure-compiler.appspot.com/compile', $headers, 'POST', http_build_query($data, '', '&'));
+    if ($request->code == '200') {
+      $script = $request->data;
+      cache_set('bookmarklet_script', $script);
+    }
+  }
+  return $script;
+}
+
+function bookmarklet_js() {
+  $node_types = array_filter(variable_get('bookmarklet_node_types', array('story' => 'story')));
+  // We are returning JavaScript, so tell the browser.
+  drupal_set_header('Content-Type: text/javascript; charset=utf-8');
+
+  $settings = array(
+    'authenticated' => user_is_logged_in(),
+    'stylesheet' => variable_get('bookmarklet_stylesheet', url(drupal_get_path('module', 'bookmarklet') .'/css/bookmarklet.css', array('absolute' => TRUE))),
+    'types' => array(),
+    'defaultType' => variable_get('bookmarklet_default_node_type', 'story'),
+    'urlMap' => array(),
+    'constant' => variable_get('bookmarklet_constant', ''),
+  );
+
+  // Node types keyed by hyphenated machine name.
+  // Name is the human readable node type used in the button text of the dialog.
+  foreach (node_get_types('types') as $type) {
+    if (in_array($type->type, $node_types) && node_access('create', $type->type)) {
+      $settings['types'][str_replace('_', '-', $type->type)] = array(
+        'name' => drupal_ucfirst($type->name),
+        'prepopulate' => bookmarklet_prepopulate_pattern($type->type),
+      );
+    }
+  }
+
+  // Map URLs to node types.
+  $settings['urlMap'] = bookmarklet_url_type_map();
+
+  if (!empty($_GET['callback'])) {
+    echo $_GET['callback'] .'('. drupal_to_js($settings) .');';
+  }
+  else {
+    echo drupal_to_js($settings);
+  }
+}
+
+/**
+ * Return array of translations between available input and Form API elements.
+ *
+ * array(
+ *   'title' => '',
+ *   'href' => '',
+ *   'selection' => '',
+ * );
+ */
+function bookmarklet_prepopulate_pattern($type) {
+
+  // Default $edit URL prepopulate pattern for all nodes.
+  $pattern = array(
+    'title' => 'title',
+    'body_field' => array(
+      'body' => 'selection',
+    ),
+  );
+
+  $type_info = content_types($type);
+
+  // Find any linky fields.
+  foreach ($type_info['fields'] as $field) {
+    switch ($field['type']) {
+    case 'emimage':
+    case 'emvideo':
+    case 'emaudio':
+      $pattern[$field['field_name']] = array(
+        0 => array(
+          'embed' => 'href',
+        ),
+      );
+      break;
+    case 'link':
+      $column = 'url';
+      $pattern[$field['field_name']] = array(
+        0 => array(
+          'url' => 'href',
+          'title' => 'title',
+        ),
+      );
+      break;
+    }
+  }
+  drupal_alter('bookmarklet_prepopulate_pattern', $pattern, $type);
+  return $pattern;
+}
+
+function bookmarklet_url_type_map() {
+  $results = array();
+
+  if (module_exists('emfield')) {
+
+    // Generate an array of providers. type => field module => provider.
+    $providers = array();
+    foreach (content_types() as $type_name => $type) {
+      foreach ($type['fields'] as $field) {
+        $allowed_providers = emfield_allowed_providers($field, $field['module']);
+        if (!empty($allowed_providers)) {
+          $providers[$type_name][$field['module']] = $allowed_providers;
+        }
+      }
+    }
+
+    // Transform the providers into regexs and types.
+    $map = array();
+    foreach ($providers as $type_name => $modules) {
+      foreach ($modules as $module => $providers_info) {
+        foreach (array_keys($providers_info) as $provider_name) {
+          $results = @emfield_include_invoke($module, $provider_name, 'extract');
+          if (!empty($results)) {
+            foreach ($results as $regex) {
+              $map[$regex][] = $type_name;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (module_exists('oembedembedly')) {
+    $cache = cache_get('bookmarklet:oembedly');
+
+    if ($cache && isset($cache->data)) {
+      $json = $cache->data;
+    }
+    else {
+      $json = drupal_http_request('http://api.embed.ly/v1/api/services/javascript');
+      if ($json->code == 200) {
+        $json = json_decode($json->data);
+      }
+      else {
+        $json = FALSE;
+      }
+
+      cache_set('bookmarklet:oembedly', $json, 'cache', time() + 3600 * ($json ? 24 : 6));
+    }
+
+    if (is_array($json)) {
+      foreach ($json as $embedly_provider) {
+        if ($embedly_provider->type == 'photo') {
+          $type = 'image';
+        }
+        else if ($embedly_provider->type == 'rich') {
+          $type = 'link';
+        }
+        else {
+          $type = $embedly_provider->type;
+        }
+        foreach ($embedly_provider->regex as $regex) {
+          $map['@'. $regex .'@i'][] = $type;
+        }
+      }
+    }
+
+  }
+  drupal_alter('bookmarklet_urlmap', $map);
+  return $map;
+}
+
+/**
+ * Node save confirmation page.
+ */
+function bookmarklet_node_save_confirm($node) {
+  bookmarklet_add_event(array('method' => 'close'));
+  $links = array();
+  $options = array(
+    'attributes' => array(
+      'target' => '_blank',
+    ),
+  );
+  $links[] = l('View', 'node/'. $node->nid, $options);
+  $links[] = l('Edit', 'node/'. $node->nid .'/edit', $options);
+  return theme('item_list', $links);
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function bookmarklet_user($op, &$edit, &$account, $category = NULL) {
+  if ($op == 'login' && !empty($_GET['bookmarklet'])) {
+    bookmarklet_add_event(array('method' => 'loadSettings'));
+  }
+}

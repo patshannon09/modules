@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+
+function nodehierarchyaccess_install() {
+  // set the weight so that the modules loads later than nodeaccess
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'nodehierarchyaccess'");
+}

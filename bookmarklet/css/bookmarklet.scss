@@ -1,0 +1,71 @@
+// sass --watch
+// -I /opt/local/lib/ruby/gems/1.8/gems/compass-0.10.4/frameworks/blueprint/stylesheets
+// -I /opt/local/lib/ruby/gems/1.8/gems/compass-0.10.frameworks/_blueprint_deprecated_imports/stylesheets
+// -I /opt/local/lib/ruby/gems/1.8/gems/compass-0.10.4/frameworks/compass/stylesheets
+// -I /opt/local/lib/ruby/gems/1.8/gems/compass-0.10.4/frameworks/_compass_deprecated_imports/stylesheets
+// -I /opt/local/lib/ruby/gems/1.8/gems/compass-susy-plugin-0.8.0/sass/
+// css:css
+
+@import "jquery.ui.core";
+@import "jquery.ui.dialog";
+@import "jquery.ui.theme";
+
+.drupal-bookmarklet {
+  @include ui-dialog;
+  @include ui-widget;
+  @include ui-widget-content;
+
+  .ui-widget-header {
+    @include ui-widget-header;
+  }
+
+  .ui-dialog-title {
+    @include float(none);
+    a {
+      font-weight: bold !important;
+      white-space: nowrap;
+      @include float-left;
+      text-decoration: none;
+      padding: {
+        left: 1ex;
+        right: 1ex; } } }
+
+  .ui-widget-content {
+    background: white; }
+
+  .ui-state-default,
+//  .ui-widget-content .ui-state-default,
+  .ui-widget-header .ui-state-default {
+    @include ui-state-default; }
+  .ui-state-hover,
+//  .ui-widget-content .ui-state-hover,
+  .ui-widget-header .ui-state-hover,
+  .ui-state-focus,
+//  .ui-widget-content .ui-state-focus,
+  .ui-widget-header .ui-state-focus {
+    @include ui-state-hover; }
+  .ui-state-active,
+//  .ui-widget-content .ui-state-active,
+  .ui-widget-header .ui-state-active {
+    @include ui-state-active; }
+
+  .ui-icon {
+    @include ui-icon-core; }
+
+  @include ui-icon(unquote(".ui-icon"));
+  @include ui-icons;
+  @include ui-icons-hover;
+  @include ui-corners;
+
+  .ui-helper-clearfix {
+    @include ui-helper-clearfix; } }
+
+.ui-widget-overlay {
+  @include ui-widget-overlay-core;
+  @include ui-widget-overlay; }
+
+.bookmarklet-loading {
+  @extend .ui-widget-overlay;
+  background-repeat: no-repeat;
+  z-index: 2147483647;
+  background-image: url(../images/ajax-loader.gif); }

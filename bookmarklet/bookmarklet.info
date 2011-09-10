@@ -1,0 +1,11 @@
+name = Bookmarklet
+description = Bookmarklet enables creation of nodes in a UI Dialog on any site.
+core = 6.x
+dependencies[] = prepopulate
+
+; Information added by drupal.org packaging script on 2011-02-25
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "bookmarklet"
+datestamp = "1298618903"
+

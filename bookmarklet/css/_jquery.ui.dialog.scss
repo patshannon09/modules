@@ -1,0 +1,57 @@
+// jQuery UI Dialog @VERSION
+//
+// Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
+// Dual licensed under the MIT or GPL Version 2 licenses.
+// http://jquery.org/license
+//
+// http://docs.jquery.com/UI/Dialog#theming
+
+@import "compass/utilities/general/float";
+
+@mixin ui-dialog {
+  position: absolute;
+  padding: 0;
+  width: 300px;
+  overflow: hidden;
+  .ui-dialog-titlebar {
+    padding: 0;
+    position: relative; }
+  .ui-dialog-title {
+    @include float-left;
+    margin: 0; }
+  .ui-dialog-titlebar-close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    span {
+      display: block;
+      margin: 1px; }
+    &:hover, &:focus {
+      padding: 0; } }
+  .ui-dialog-content {
+    position: relative;
+    border: 0;
+    padding: .5em 1em;
+    background: none;
+    overflow: auto;
+    zoom: 1; }
+//  .ui-dialog-buttonpane {
+//    text-align: left;
+//    border-width: 1px 0 0 0;
+//    background-image: none;
+//    margin: .5em 0 0 0;
+//    padding: .3em 1em .5em .4em;
+//    .ui-dialog-buttonset {
+//      @include float-right; }
+//    button {
+//      margin: .5em .4em .5em 0;
+//      cursor: pointer; } }
+  .ui-resizable-se {
+    width: 14px;
+    height: 14px;
+    right: 3px;
+    bottom: 3px; }
+  &.ui-draggable .ui-dialog-titlebar {
+    cursor: move; } }

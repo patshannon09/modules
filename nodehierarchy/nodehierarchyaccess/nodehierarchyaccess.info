@@ -1,0 +1,12 @@
+name = Node Hierarchy Access
+description = Integrates Node Hierarchy and Node Access.
+package = "Node Hierarchy"
+dependencies[] = nodehierarchy
+dependencies[] = nodeaccess
+core = 6.x
+; Information added by drupal.org packaging script on 2011-04-15
+version = "6.x-2.1"
+core = "6.x"
+project = "nodehierarchy"
+datestamp = "1302853616"
+
